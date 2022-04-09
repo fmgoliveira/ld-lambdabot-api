@@ -1,4 +1,4 @@
-import { config } from 'dotenv';
+// import { config } from 'dotenv';
 import express, { Express } from 'express';
 import cors from 'cors';
 import session from 'express-session';
@@ -6,7 +6,7 @@ import passport from 'passport';
 import routes from '../routes';
 import store from 'connect-mongo';
 
-config();
+// config();
 require('../strategies/discord');
 
 export function createApp(): Express {
