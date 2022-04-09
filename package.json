@@ -38,6 +38,7 @@
   },
   "dependencies": {
     "axios": "^0.26.1",
+    "dotenv": "^16.0.0",
     "connect-mongo": "^4.6.0",
     "cors": "^2.8.5",
     "discord.js": "^13.6.0",
