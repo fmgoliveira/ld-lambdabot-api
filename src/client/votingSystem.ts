@@ -3,6 +3,18 @@ import { User, Vote } from '../database/schemas';
 import { Client, Collection, MessageEmbed } from "discord.js";
 
 export default async (client: Client) => {
+  process.on('uncaughtException', (err: any) => {
+    console.log(err);
+    if (err.message === "Cannot read properties of undefined (reading 'users')") return;
+    if (err.message === "Unexpected token '<'") return;
+  });
+
+  process.on('unhandledRejection', (err: any) => {
+    console.log(err);
+    if (err.message === "Cannot read properties of undefined (reading 'users')") return;
+    if (err.message === "Unexpected token '<'") return;
+  });
+
   const getVotedMembers = async () => {
     const db = await Vote.find({});
 
