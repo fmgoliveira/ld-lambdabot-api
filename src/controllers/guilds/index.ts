@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { User } from "../../database/schemas/User";
-import { getBotGuildsService, getMutualGuildsService, getUserGuildsService } from "../../services/guilds";
+import { getMutualGuildsService, getUserGuildsService } from "../../services/guilds";
+import { PartialGuild } from "../../utils/types";
 
 export async function getGuildsController(req: Request, res: Response) {
   const user = req.user as User;
@@ -12,4 +13,14 @@ export async function getGuildsController(req: Request, res: Response) {
     console.log(err);
     res.sendStatus(400).send({ msg: "Error" })
   }
+}
+
+export async function getGuild(req: Request, res: Response) {
+  const user = req.user as User;
+  const guildId = req.params.guildId;
+
+  const { data: guilds } = await getUserGuildsService(user.id);
+  const guild = guilds.filter((g: PartialGuild) => g.id === guildId)[0];
+
+  res.status(200).send(guild);
 }

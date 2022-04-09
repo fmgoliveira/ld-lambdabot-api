@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { Guild } from 'discord.js';
 import { User } from '../../database/schemas';
 import { DISCORD_API_URL } from '../../utils/constants';
 import { PartialGuild } from '../../utils/types';
@@ -23,34 +24,16 @@ export async function getMutualGuildsService(id: string) {
   const { data: botGuilds } = await getBotGuildsService();
   const { data: userGuilds } = await getUserGuildsService(id);
 
-  const ownerUserGuilds = userGuilds.filter(
-    (guild) => guild.owner
-  );
-  const mutualOwnerGuilds = ownerUserGuilds.filter((guild) =>
-    botGuilds.some((botGuild) => botGuild.id === guild.id)
-  );
+  let guildArray: PartialGuild[] = userGuilds.map((guild: PartialGuild) => guild);
 
-  const adminUserGuilds = userGuilds.filter(
-    (guild) => ((parseInt(guild.permissions) & 0x8) === 0x8) && !guild.owner
-  );
-  const mutualAdminGuilds = adminUserGuilds.filter((guild) =>
-    botGuilds.some((botGuild) => botGuild.id === guild.id)
-  );
+  guildArray.forEach((guild: PartialGuild) => {
+    guild.botIn = botGuilds.some((g: PartialGuild) => g.id === guild.id);
+    if (guild.owner) return guild.role = 'owner';
+    if (((parseInt(guild.permissions) & 0x8) === 0x8)) return guild.role = 'admin';
+    if (((parseInt(guild.permissions) & 0x20) === 0x20)) return guild.role = 'manager';
+    return guild.role = 'none'
+  });
 
-  const managerUserGuilds = userGuilds.filter(
-    (guild) => ((parseInt(guild.permissions) & 0x20) === 0x20) && ((parseInt(guild.permissions) & 0x8) !== 0x8) && !guild.owner
-  );
-  const mutualManagerGuilds = managerUserGuilds.filter((guild) =>
-    botGuilds.some((botGuild) => botGuild.id === guild.id)
-  );
-
-  return {
-    ownerUserGuilds,
-    mutualOwnerGuilds,
-    adminUserGuilds,
-    mutualAdminGuilds,
-    managerUserGuilds,
-    mutualManagerGuilds
-  }
+  return guildArray.filter((guild: PartialGuild) => guild.role !== 'none');
 
 }

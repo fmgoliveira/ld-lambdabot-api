@@ -1,9 +1,11 @@
 import { Router } from "express";
-import { getGuildsController } from "../../controllers/guilds";
-import { isAuthenticated } from "../../utils/middlewares";
+import { getGuild, getGuildsController } from "../../controllers/guilds";
+import { isAuthenticated, storedGuildSetup } from "../../utils/middlewares";
 
 const router = Router();
 
 router.get('/', isAuthenticated, getGuildsController);
+
+router.get('/:guildId', isAuthenticated, storedGuildSetup, getGuild);
 
 export default router;

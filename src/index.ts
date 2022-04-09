@@ -1,5 +1,6 @@
 import { config } from 'dotenv';
 import { createApp } from './utils/createApp';
+import clientConnection from './client';
 import './database';
 
 config();
@@ -12,6 +13,12 @@ async function main() {
   try {
     const app = createApp();
     app.listen(PORT, () => console.log(`Running on port ${PORT}`));
+  } catch (err) {
+    console.log(err);
+  }
+
+  try {
+    clientConnection.init();
   } catch (err) {
     console.log(err);
   }
