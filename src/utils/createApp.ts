@@ -1,4 +1,6 @@
-// import { config } from 'dotenv';
+if (process.env.ENV !== 'production') {
+  require("dotenv").config();
+};
 import express, { Express } from 'express';
 import cors from 'cors';
 import session from 'express-session';
@@ -6,7 +8,6 @@ import passport from 'passport';
 import routes from '../routes';
 import store from 'connect-mongo';
 
-// config();
 require('../strategies/discord');
 
 export function createApp(): Express {

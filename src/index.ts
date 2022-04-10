@@ -1,9 +1,9 @@
-// import { config } from 'dotenv';
+if (process.env.ENV !== 'production') {
+  require("dotenv").config();
+};
 import { createApp } from './utils/createApp';
 import clientConnection from './client';
 import './database';
-
-// config();
 
 const PORT = process.env.PORT || 3001;
 

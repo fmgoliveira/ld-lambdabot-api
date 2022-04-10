@@ -1,0 +1,18 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const tslib_1 = require("tslib");
+const express_1 = require("express");
+const auth_1 = tslib_1.__importDefault(require("./auth"));
+const guilds_1 = tslib_1.__importDefault(require("./guilds"));
+const invite_1 = tslib_1.__importDefault(require("./invite"));
+const insights_1 = tslib_1.__importDefault(require("./insights"));
+const manage_1 = tslib_1.__importDefault(require("./manage"));
+const voting_1 = tslib_1.__importDefault(require("./voting"));
+const router = (0, express_1.Router)();
+router.use('/auth', auth_1.default);
+router.use('/guilds', guilds_1.default);
+router.use('/invite', invite_1.default);
+router.use('/insights', insights_1.default);
+router.use('/manage', manage_1.default);
+router.use('/voting', voting_1.default);
+exports.default = router;
