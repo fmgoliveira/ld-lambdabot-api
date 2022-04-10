@@ -1,7 +1,9 @@
+// import { config } from 'dotenv';
 import { Client } from 'discord.js';
 import statsSystem from './statsSystem';
 import votingSystem from './votingSystem';
 
+// config();
 const client = new Client({
   intents: 104447,
   presence: {

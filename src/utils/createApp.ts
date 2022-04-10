@@ -18,7 +18,7 @@ export function createApp(): Express {
 
   // Enable CORS
   app.use(cors({
-    origin: [`${process.env.DASHBOARD_DOMAIN!}`],
+    origin: [`${process.env.DASHBOARD_DOMAIN!}`, '89.115.78.248'],
     credentials: true,
   }));
 
