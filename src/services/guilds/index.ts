@@ -2,7 +2,7 @@ import axios from 'axios';
 import { Guild } from 'discord.js';
 import { User } from '../../database/schemas';
 import { DISCORD_API_URL } from '../../utils/constants';
-import { PartialGuild } from '../../utils/types';
+import { PartialChannel, PartialGuild } from '../../utils/types';
 
 export function getBotGuildsService() {
   return axios.get<PartialGuild[]>(`${DISCORD_API_URL}/users/@me/guilds`, {
@@ -36,4 +36,14 @@ export async function getMutualGuildsService(id: string) {
 
   return guildArray.filter((guild: PartialGuild) => guild.role !== 'none');
 
+}
+
+export async function getGuildChannels(guildId: string) {
+  const { data: channels } = await axios.get<PartialChannel[]>(`${DISCORD_API_URL}/guilds/${guildId}/channels`, {
+    headers: {
+      Authorization: `Bot ${process.env.DISCORD_BOT_TOKEN}`,
+    },
+  });
+
+  return channels.filter((channel: PartialChannel) => [0, 5].includes(channel.type));
 }

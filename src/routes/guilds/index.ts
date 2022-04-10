@@ -8,4 +8,6 @@ router.get('/', isAuthenticated, getGuildsController);
 
 router.get('/:guildId', isAuthenticated, storedGuildSetup, getGuild);
 
+router.get('/:guildId/channels', isAuthenticated, storedGuildSetup, getGuild);
+
 export default router;

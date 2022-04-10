@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { User } from "../../database/schemas/User";
-import { getMutualGuildsService, getUserGuildsService } from "../../services/guilds";
+import { getGuildChannels, getMutualGuildsService, getUserGuildsService } from "../../services/guilds";
 import { PartialGuild } from "../../utils/types";
 
 export async function getGuildsController(req: Request, res: Response) {
@@ -23,4 +23,11 @@ export async function getGuild(req: Request, res: Response) {
   const guild = guilds.filter((g: PartialGuild) => g.id === guildId)[0];
 
   res.status(200).send(guild);
+}
+
+export async function getChannels(req: Request, res: Response) {
+  const guildId = req.params.guildId;
+  const channels = await getGuildChannels(guildId);
+
+  res.status(200).send(channels);
 }

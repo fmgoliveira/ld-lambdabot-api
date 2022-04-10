@@ -196,5 +196,6 @@ export async function getMembers(guildId: string) {
 
 export async function getLogs(guildId: string) {
   const logs = await Logs.find({ guildId });
-  return logs;
+  const reversedLogs = logs.reverse();
+  return reversedLogs;
 }
