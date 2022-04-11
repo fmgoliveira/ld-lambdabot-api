@@ -37,9 +37,21 @@ export async function postAdministrationSettings(guildId: string | undefined, da
   const guild = await Guild.findOne({ guildId });
   if (!guild) return null;
 
+  if (data.settings.chatbot.enabled) {
+    data.settings.chatbot.channels.forEach(async (channelId) => {
+      const chatbotPerms = checkForBotPermissionInChannel(channelId, "SEND_MESSAGES");
+      if (!chatbotPerms) return { error: "I don't have permission to send messages one of the chatbot's specified channels." };
+    });
+  };
+
+  data.settings.autoreact.forEach(async (autoreactObj) => {
+    const chatbotPerms = checkForBotPermissionInChannel(autoreactObj.channel, "ADD_REACTIONS");
+    if (!chatbotPerms) return { error: "I don't have permission to react to messages in one of the autoreact's specified channels." };
+  });
+
   guild.modules.administration = data.settings;
   guild.commands.administration = data.commands;
-  
+
   await guild.save();
 
   return guild;
