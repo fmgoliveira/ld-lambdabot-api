@@ -90,7 +90,7 @@ export async function getChartsData(guildId: string) {
   const actionsTemp = actions;
   const latestActions = [];
 
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < 4; i++) {
     if (actionsTemp.length > 0) {
       const action = actionsTemp.reduce((prev, curr) => prev.timestamp > curr.timestamp ? prev : curr);
       actionsTemp.splice(actions.indexOf(action), 1);

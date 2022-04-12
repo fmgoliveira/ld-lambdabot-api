@@ -241,6 +241,14 @@ export interface Guild {
     administration: {
       chatbot: boolean;
       autoreact: boolean;
+      giveaway: {
+        start: boolean;
+        end: boolean;
+        pause: boolean;
+        unpause: boolean;
+        reroll: boolean;
+        delete: boolean;
+      };
     },
     tickets: {
       add: boolean;
@@ -514,6 +522,14 @@ const GuildSchema = new Schema<Guild>({
     administration: {
       chatbot: { type: Boolean, required: false, default: false },
       autoreact: { type: Boolean, required: false, default: false },
+      giveaway: {
+        start: { type: Boolean, required: false, default: true },
+        end: { type: Boolean, required: false, default: true },
+        pause: { type: Boolean, required: false, default: true },
+        unpause: { type: Boolean, required: false, default: true },
+        reroll: { type: Boolean, required: false, default: true },
+        delete: { type: Boolean, required: false, default: true },
+      }
     },
     tickets: {
       add: { type: Boolean, required: false, default: true },

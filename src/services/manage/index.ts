@@ -32,6 +32,14 @@ export async function postAdministrationSettings(guildId: string | undefined, da
   commands: {
     chatbot: boolean;
     autoreact: boolean;
+    giveaway: {
+      start: boolean;
+      end: boolean;
+      pause: boolean;
+      unpause: boolean;
+      reroll: boolean;
+      delete: boolean;
+    };
   }
 }) {
   const guild = await Guild.findOne({ guildId });
