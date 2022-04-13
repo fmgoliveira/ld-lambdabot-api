@@ -12,4 +12,4 @@ router.get('/:guildId/channels', isAuthenticated, storedGuildSetup, getChannels)
 
 router.get('/:guildId/roles', isAuthenticated, storedGuildSetup, getRoles);
 
-export default router;gi
+export default router;
