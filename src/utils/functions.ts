@@ -43,11 +43,11 @@ export const validEmbed = (embed: {
 
     if (embed.footer.icon_url && !embed.footer.text) return { error: "Footer text cannot be empty if footer icon is set." };
 
-    if (!validURL(embed.titleUrl)) return { error: "Title URL is not a valid URL." };
-    if (!validURL(embed.image)) return { error: "Image URL is not a valid URL." };
-    if (!validURL(embed.thumbnail)) return { error: "Thumbnail URL is not a valid URL." };
-    if (!validURL(embed.author.icon_url)) return { error: "Author icon URL is not a valid URL." };
-    if (!validURL(embed.footer.icon_url)) return { error: "Footer icon URL is not a valid URL." };
+    if (!validURL(embed.titleUrl) && embed.titleUrl.length > 0 && embed.title.length > 0) return { error: "Title URL is not a valid URL." };
+    if (!validURL(embed.image) && embed.image.length > 0) return { error: "Image URL is not a valid URL." };
+    if (!validURL(embed.thumbnail) && embed.thumbnail.length > 0) return { error: "Thumbnail URL is not a valid URL." };
+    if (!validURL(embed.author.icon_url) && embed.author.icon_url.length > 0 && embed.author.name.length > 0) return { error: "Author icon URL is not a valid URL." };
+    if (!validURL(embed.footer.icon_url) && embed.footer.icon_url.length > 0 && embed.footer.text.length > 0) return { error: "Footer icon URL is not a valid URL." };
   }
 
   return { error: null };

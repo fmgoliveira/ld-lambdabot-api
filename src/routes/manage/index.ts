@@ -2,9 +2,7 @@ import { Router } from "express";
 import {
   getAdministrationSettingsController,
   getAltDetectionSettingsController,
-  getAutorolesSettingsController,
   getChatFilterSettingsController,
-  getLeaveSettingsController,
   getLevelsSettingsController,
   getLoggingSettingsController,
   getModerationSettingsController,
@@ -32,11 +30,7 @@ router.post('/:guildId/administration', isAuthenticated, isAllowed, storedGuildS
 
 router.get('/:guildId/welcome', isAuthenticated, isAllowed, storedGuildSetup, getWelcomeSettingsController);
 router.post('/:guildId/welcome', isAuthenticated, isAllowed, storedGuildSetup, postWelcomeSettingsController);
-
-router.get('/:guildId/leave', isAuthenticated, isAllowed, storedGuildSetup, getLeaveSettingsController);
 router.post('/:guildId/leave', isAuthenticated, isAllowed, storedGuildSetup, postLeaveSettingsController);
-
-router.get('/:guildId/autoroles', isAuthenticated, isAllowed, storedGuildSetup, getAutorolesSettingsController);
 router.post('/:guildId/autoroles', isAuthenticated, isAllowed, storedGuildSetup, postAutorolesSettingsController);
 
 router.get('/:guildId/tickets', isAuthenticated, isAllowed, storedGuildSetup, getTicketsSettingsController);

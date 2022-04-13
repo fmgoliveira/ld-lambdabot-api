@@ -2,7 +2,7 @@ import axios from "axios";
 import { NextFunction, Request, Response } from "express";
 import { Guild } from "../database/schemas";
 import { User } from "../database/schemas/User";
-import { getUserGuildsService } from "../services/guilds";
+import { getBotGuildsService, getUserGuildsService } from "../services/guilds";
 import { DISCORD_API_URL } from "./constants";
 import { PartialGuild } from "./types";
 
@@ -34,12 +34,8 @@ export const isAllowed = async (req: Request, res: Response, next: NextFunction)
   if (!guildId) return next();
   const user = req.user as User;
 
-  const { data: userGuilds } = await axios.get<PartialGuild[]>(`${DISCORD_API_URL}/users/@me/guilds`, {
-    headers: { Authorization: `Bearer ${user.accessToken}` }
-  });
-  const { data: botGuilds } = await axios.get<PartialGuild[]>(`${DISCORD_API_URL}/users/@me/guilds`, {
-    headers: { Authorization: `Bot ${process.env.DISCORD_BOT_TOKEN}` }
-  });
+  const { data: userGuilds } = await getUserGuildsService(user.id);
+  const { data: botGuilds } = await getBotGuildsService();
 
   const guild = userGuilds.filter((g: PartialGuild) => g.id === guildId)[0];
   const botGuild = botGuilds.filter((g: PartialGuild) => g.id === guildId)[0];

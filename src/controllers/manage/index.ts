@@ -2,9 +2,7 @@ import { Request, Response } from "express";
 import {
   getAdministrationSettings,
   getAltDetectionSettings,
-  getAutorolesSettings,
   getChatFilterSettings,
-  getLeaveSettings,
   getLevelsSettings,
   getLoggingSettings,
   getModerationSettings,
@@ -41,7 +39,8 @@ export async function postAdministrationSettingsController(req: Request, res: Re
   if (!guildId) return res.status(404).send({ msg: "Guild not found" });
 
   const data = await postAdministrationSettings(guildId, req.body.data);
-  if (!data) return res.status(404).send({ msg: "Guild not found" });
+  if (data?.error) return res.status(400).send(data?.error);
+  if (!data?.guild || !data) return res.status(404).send({ msg: "Guild not found" });
 
   await createActionLog(guildId, req.user as User, "administration");
 
@@ -71,16 +70,6 @@ export async function postWelcomeSettingsController(req: Request, res: Response)
   res.status(200).send(data);
 }
 
-export async function getLeaveSettingsController(req: Request, res: Response) {
-  const guildId = req.params.guildId;
-  if (!guildId) return res.status(404).send({ msg: "Guild not found" });
-
-  const data = await getLeaveSettings(guildId);
-  if (!data) return res.status(404).send({ msg: "Guild not found" });
-
-  res.status(200).send(data);
-}
-
 export async function postLeaveSettingsController(req: Request, res: Response) {
   const guildId = req.params.guildId;
   if (!guildId) return res.status(404).send({ msg: "Guild not found" });
@@ -90,16 +79,6 @@ export async function postLeaveSettingsController(req: Request, res: Response) {
   if (!data?.guild || !data) return res.status(404).send({ msg: "Guild not found" });
 
   await createActionLog(guildId, req.user as User, "leave");
-
-  res.status(200).send(data);
-}
-
-export async function getAutorolesSettingsController(req: Request, res: Response) {
-  const guildId = req.params.guildId;
-  if (!guildId) return res.status(404).send({ msg: "Guild not found" });
-
-  const data = await getAutorolesSettings(guildId);
-  if (!data) return res.status(404).send({ msg: "Guild not found" });
 
   res.status(200).send(data);
 }

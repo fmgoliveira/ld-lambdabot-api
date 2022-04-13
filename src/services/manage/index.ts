@@ -3,7 +3,7 @@ import { ColorResolvable } from "discord.js";
 import { MessageButton } from "discord.js";
 import { MessageActionRow } from "discord.js";
 import { client } from "../../client";
-import { checkForBotPermissionInCategory, checkForBotPermissionInChannel } from "../../client/methods";
+import { checkForBotPermissionInCategory, checkForBotPermissionInChannel, checkForBotPermissionManageRole } from "../../client/methods";
 import { Guild } from "../../database/schemas";
 import { createActionLog, validEmbed } from "../../utils/functions";
 import placeholderReplace from "../../utils/placeholderReplace";
@@ -45,6 +45,8 @@ export async function postAdministrationSettings(guildId: string | undefined, da
   const guild = await Guild.findOne({ guildId });
   if (!guild) return null;
 
+  if (!data) return null;
+
   if (data.settings.chatbot.enabled) {
     const errorArray = data.settings.chatbot.channels.map((channelId) => {
       const chatbotPerms = checkForBotPermissionInChannel(channelId, "SEND_MESSAGES");
@@ -64,7 +66,7 @@ export async function postAdministrationSettings(guildId: string | undefined, da
 
   await guild.save();
 
-  return guild;
+  return { guild, error: null };
 }
 
 
@@ -72,9 +74,17 @@ export async function getWelcomeSettings(guildId: string | undefined) {
   const guild = await Guild.findOne({ guildId });
   if (!guild) return null;
 
-  const settings = guild.modules.welcome;
+  const welcome = {
+    settings: guild.modules.welcome,
+  };
+  const leave = {
+    settings: guild.modules.leave,
+  };
+  const autoroles = {
+    settings: guild.modules.autoroles,
+  };
 
-  return { settings };
+  return { welcome, leave, autoroles };
 }
 
 export async function postWelcomeSettings(guildId: string | undefined, data: {
@@ -126,16 +136,6 @@ export async function postWelcomeSettings(guildId: string | undefined, data: {
   return { guild, error: null };
 }
 
-
-export async function getLeaveSettings(guildId: string | undefined) {
-  const guild = await Guild.findOne({ guildId });
-  if (!guild) return null;
-
-  const settings = guild.modules.leave;
-
-  return { settings };
-}
-
 export async function postLeaveSettings(guildId: string | undefined, data: {
   settings: {
     enabled: boolean;
@@ -183,16 +183,6 @@ export async function postLeaveSettings(guildId: string | undefined, data: {
   return { guild, error: null };
 }
 
-
-export async function getAutorolesSettings(guildId: string | undefined) {
-  const guild = await Guild.findOne({ guildId });
-  if (!guild) return null;
-
-  const settings = guild.modules.autoroles;
-
-  return { settings };
-}
-
 export async function postAutorolesSettings(guildId: string | undefined, data: {
   settings: {
     enabled: boolean;
@@ -202,6 +192,22 @@ export async function postAutorolesSettings(guildId: string | undefined, data: {
 }) {
   const guild = await Guild.findOne({ guildId });
   if (!guild) return null;
+
+  if (data.settings.enabled) {
+    const errorArray1 = data.settings.userRoles.map((role) => {
+      const botPerms = checkForBotPermissionManageRole(role, guildId!);
+      if (botPerms === 1) return true;
+      else if (botPerms === 2) return false;
+    });
+    if (errorArray1.some((error) => error === true)) return { error: "I don't have permission to manage at least one of the specified user roles." };
+    
+    const errorArray2 = data.settings.botRoles.map((role) => {
+      const botPerms = checkForBotPermissionManageRole(role, guildId!);
+      if (botPerms === 1) return true;
+      else if (botPerms === 2) return false;
+    });
+    if (errorArray2.some((error) => error === true)) return { error: "I don't have permission to manage at least one of the specified bot roles." };
+  };
 
   guild.modules.autoroles = data.settings;
 
