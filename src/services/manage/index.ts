@@ -200,7 +200,7 @@ export async function postAutorolesSettings(guildId: string | undefined, data: {
       else if (botPerms === 2) return false;
     });
     if (errorArray1.some((error) => error === true)) return { error: "I don't have permission to manage at least one of the specified user roles." };
-    
+
     const errorArray2 = data.settings.botRoles.map((role) => {
       const botPerms = checkForBotPermissionManageRole(role, guildId!);
       if (botPerms === 1) return true;
@@ -228,6 +228,7 @@ export async function getTicketsSettings(guildId: string | undefined) {
 }
 
 export async function postTicketsSettings(guildId: string | undefined, data: {
+  deletePanelMessage?: boolean;
   settings: {
     enabled: boolean;
     panelMessage: {
@@ -276,6 +277,34 @@ export async function postTicketsSettings(guildId: string | undefined, data: {
   const guild = await Guild.findOne({ guildId });
   if (!guild) return null;
 
+  if (data.deletePanelMessage) {
+    const panelMessage = guild.modules.tickets.panelMessage;
+    if (panelMessage.id && panelMessage.channel) {
+      const channel = client.channels.cache.get(panelMessage.channel);
+      if (channel && (channel.type === 'GUILD_NEWS' || channel.type === 'GUILD_TEXT')) {
+        const message = await channel.messages.fetch(panelMessage.id);
+        if (message) message.deletable ? message.delete().catch((err) => console.log(err)) : null;
+      }
+    };
+
+    guild.modules.tickets.panelMessage = {
+      id: "",
+      url: "",
+      message: {
+        title: "",
+        description: "",
+        color: "#000000",
+        thumbnail: "",
+        titleUrl: "",
+        image: "",
+        timestamp: false,
+      },
+      channel: "",
+    };
+    await guild.save();
+    return { guild, error: null };
+  }
+
   if (data.settings.enabled) {
     const botHasPermissionsInLogChannel: 0 | 1 | 2 = checkForBotPermissionInChannel(data.settings.logChannel, "SEND_MESSAGES");
     if (botHasPermissionsInLogChannel === 0) return { error: "The log channel you specified is not valid." };
@@ -322,13 +351,12 @@ export async function postTicketsSettings(guildId: string | undefined, data: {
             components!.addComponents(
               new MessageButton()
                 .setLabel(category.label)
-                .setCustomId(`ticket-create-${category.label.toLowerCase().replaceAll(' ', '-')}`)
+                .setCustomId(`ticket-create-${category.label.toLowerCase().replaceAll(' ', '%')}`)
                 .setEmoji('📨')
                 .setStyle('SECONDARY'),
             );
           });
         }
-
 
         const prevChannel = client.channels.cache.get(prevData.panelMessage.channel);
         if (prevChannel && (prevChannel.type === 'GUILD_NEWS' || prevChannel.type === 'GUILD_TEXT')) {
