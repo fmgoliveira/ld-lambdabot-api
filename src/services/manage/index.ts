@@ -176,7 +176,7 @@ export async function postLeaveSettings(guildId: string | undefined, data: {
     if (botHasPermissions === 1) return { error: "The bot does not have permission to send messages in the channel you specified." };
   };
 
-  guild.modules.welcome = data.settings;
+  guild.modules.leave = data.settings;
 
   await guild.save();
 
