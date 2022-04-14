@@ -229,7 +229,7 @@ export async function getTicketsSettings(guildId: string | undefined) {
 
 export async function postTicketsSettings(guildId: string | undefined, data: {
   deletePanelMessage?: boolean;
-  settings: {
+  settings?: {
     enabled: boolean;
     panelMessage: {
       id?: string;
@@ -261,7 +261,7 @@ export async function postTicketsSettings(guildId: string | undefined, data: {
       moveToClosedCategory: boolean;
     }[];
   };
-  commands: {
+  commands?: {
     add: boolean;
     remove: boolean;
     close: boolean;
@@ -277,7 +277,7 @@ export async function postTicketsSettings(guildId: string | undefined, data: {
   const guild = await Guild.findOne({ guildId });
   if (!guild) return null;
 
-  if (data.deletePanelMessage) {
+  if (data.deletePanelMessage || !data.settings || !data.commands) {
     const panelMessage = guild.modules.tickets.panelMessage;
     if (panelMessage.id && panelMessage.channel) {
       const channel = client.channels.cache.get(panelMessage.channel);
@@ -306,14 +306,16 @@ export async function postTicketsSettings(guildId: string | undefined, data: {
   }
 
   if (data.settings.enabled) {
-    const botHasPermissionsInLogChannel: 0 | 1 | 2 = checkForBotPermissionInChannel(data.settings.logChannel, "SEND_MESSAGES");
-    if (botHasPermissionsInLogChannel === 0) return { error: "The log channel you specified is not valid." };
-    if (botHasPermissionsInLogChannel === 1) return { error: "The bot does not have permission to send messages in the log channel you specified." };
-
-    const botHasPermissionsInClosedCategory: 0 | 1 | 2 = checkForBotPermissionInCategory(data.settings.logChannel, "MANAGE_CHANNELS");
-    if (botHasPermissionsInClosedCategory === 0) return { error: "The closed category you specified is not valid." };
-    if (botHasPermissionsInClosedCategory === 1) return { error: "The bot does not have permission to manage channels in the closed category you specified." };
-
+    if (data.settings.logChannel) {
+      const botHasPermissionsInLogChannel: 0 | 1 | 2 = checkForBotPermissionInChannel(data.settings.logChannel, "SEND_MESSAGES");
+      if (botHasPermissionsInLogChannel === 0) return { error: "The log channel you specified is not valid." };
+      if (botHasPermissionsInLogChannel === 1) return { error: "The bot does not have permission to send messages in the log channel you specified." };
+    };
+    if (data.settings.closedCategory) {
+      const botHasPermissionsInClosedCategory: 0 | 1 | 2 = checkForBotPermissionInCategory(data.settings.logChannel, "MANAGE_CHANNELS");
+      if (botHasPermissionsInClosedCategory === 0) return { error: "The closed category you specified is not valid." };
+      if (botHasPermissionsInClosedCategory === 1) return { error: "The bot does not have permission to manage channels in the closed category you specified." };
+    };
     const botHasPermissionsInPanelMessageChannel: 0 | 1 | 2 = checkForBotPermissionInChannel(data.settings.panelMessage.channel, "SEND_MESSAGES");
     if (botHasPermissionsInPanelMessageChannel === 0) return { error: "The panel message channel you specified is not valid." };
     if (botHasPermissionsInPanelMessageChannel === 1) return { error: "The bot does not have permission to send messages in the panel message channel you specified." };
@@ -356,13 +358,17 @@ export async function postTicketsSettings(guildId: string | undefined, data: {
                 .setStyle('SECONDARY'),
             );
           });
-        }
+        };
 
         const prevChannel = client.channels.cache.get(prevData.panelMessage.channel);
         if (prevChannel && (prevChannel.type === 'GUILD_NEWS' || prevChannel.type === 'GUILD_TEXT')) {
-          const oldMessage = await prevChannel.messages.fetch(prevData.panelMessage.id);
-          if (oldMessage) oldMessage.deletable ? oldMessage.delete().catch((err) => console.log(err)) : null;
-        }
+          if (prevData.panelMessage.id) {
+            const oldMessage = await prevChannel.messages.fetch(prevData.panelMessage.id);
+            if (oldMessage) oldMessage.deletable ? oldMessage.delete().catch((err) => console.log(err)) : null;
+          };
+        };
+
+        if (!data.settings.panelMessage.message.description) return { error: "The panel message description cannot be empty." };
 
         try {
           const message = await channel.send({
@@ -371,12 +377,12 @@ export async function postTicketsSettings(guildId: string | undefined, data: {
           });
           data.settings.panelMessage.id = message.id;
           data.settings.panelMessage.url = message.url;
-
         } catch (err) {
+          console.log(err)
           return { error: "There was an error sending the panel message. Please make sure the bot has permissions and try again." };
-        }
-      }
-    }
+        };
+      };
+    };
   }
 
   if (!data.settings.panelMessage.id) data.settings.panelMessage.id = guild.modules.tickets.panelMessage.id;
@@ -426,10 +432,17 @@ export async function getModerationSettings(guildId: string | undefined) {
   const guild = await Guild.findOne({ guildId });
   if (!guild) return null;
 
-  const settings = guild.modules.moderation;
-  const commands = guild.commands.moderation;
+  const moderation = {
+    settings: guild.modules.moderation,
+  };
+  const altDetection = {
+    settings: guild.modules.altDetection,
+  };
+  const chatFilter = {
+    settings: guild.modules.chatFilter,
+  };
 
-  return { settings, commands };
+  return { moderation, altDetection, chatFilter };
 }
 
 export async function postModerationSettings(guildId: string | undefined, data: {
@@ -465,16 +478,6 @@ export async function postModerationSettings(guildId: string | undefined, data: 
   return { guild, error: null };
 }
 
-
-export async function getAltDetectionSettings(guildId: string | undefined) {
-  const guild = await Guild.findOne({ guildId });
-  if (!guild) return null;
-
-  const settings = guild.modules.altDetection;
-
-  return { settings };
-}
-
 export async function postAltDetectionSettings(guildId: string | undefined, data: {
   settings: {
     enabled: boolean;
@@ -500,6 +503,31 @@ export async function postAltDetectionSettings(guildId: string | undefined, data
   return { guild, error: null };
 }
 
+export async function postChatFilterSettings(guildId: string | undefined, data: {
+  settings: {
+    enabled: boolean;
+    logChannel: string;
+    words: string[];
+    bypassRoles: string[];
+    bypassUsers: string[];
+    bypassChannels: string[];
+  };
+}) {
+  const guild = await Guild.findOne({ guildId });
+  if (!guild) return null;
+
+  if (data.settings.enabled) {
+    const botHasPermissions = checkForBotPermissionInChannel(data.settings.logChannel, "SEND_MESSAGES");
+    if (botHasPermissions === 0) return { error: "The log channel you specified is not valid." };
+    if (botHasPermissions === 1) return { error: "The bot does not have permission to send messages in the log channel you specified." };
+  };
+
+  guild.modules.chatFilter = data.settings;
+
+  await guild.save();
+
+  return { guild, error: null };
+}
 
 export async function getLoggingSettings(guildId: string | undefined) {
   const guild = await Guild.findOne({ guildId });
@@ -586,42 +614,6 @@ export async function postLoggingSettings(guildId: string | undefined, data: {
   };
 
   guild.modules.logging = data.settings;
-
-  await guild.save();
-
-  return { guild, error: null };
-}
-
-
-export async function getChatFilterSettings(guildId: string | undefined) {
-  const guild = await Guild.findOne({ guildId });
-  if (!guild) return null;
-
-  const settings = guild.modules.chatFilter;
-
-  return { settings };
-}
-
-export async function postChatFilterSettings(guildId: string | undefined, data: {
-  settings: {
-    enabled: boolean;
-    logChannel: string;
-    words: string[];
-    bypassRoles: string[];
-    bypassUsers: string[];
-    bypassChannels: string[];
-  };
-}) {
-  const guild = await Guild.findOne({ guildId });
-  if (!guild) return null;
-
-  if (data.settings.enabled) {
-    const botHasPermissions = checkForBotPermissionInChannel(data.settings.logChannel, "SEND_MESSAGES");
-    if (botHasPermissions === 0) return { error: "The log channel you specified is not valid." };
-    if (botHasPermissions === 1) return { error: "The bot does not have permission to send messages in the log channel you specified." };
-  };
-
-  guild.modules.chatFilter = data.settings;
 
   await guild.save();
 

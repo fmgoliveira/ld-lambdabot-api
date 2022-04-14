@@ -1,8 +1,6 @@
 import { Request, Response } from "express";
 import {
   getAdministrationSettings,
-  getAltDetectionSettings,
-  getChatFilterSettings,
   getLevelsSettings,
   getLoggingSettings,
   getModerationSettings,
@@ -142,18 +140,6 @@ export async function postModerationSettingsController(req: Request, res: Respon
   res.status(200).send(data);
 }
 
-export async function getAltDetectionSettingsController(req: Request, res: Response) {
-  const guildId = req.params.guildId;
-  if (!guildId) return res.status(404).send({ msg: "Guild not found" });
-
-  const data = await getAltDetectionSettings(guildId);
-  if (!data) return res.status(404).send({ msg: "Guild not found" });
-
-  await createActionLog(guildId, req.user as User, "alt detection");
-
-  res.status(200).send(data);
-}
-
 export async function postAltDetectionSettingsController(req: Request, res: Response) {
   const guildId = req.params.guildId;
   if (!guildId) return res.status(404).send({ msg: "Guild not found" });
@@ -184,18 +170,6 @@ export async function postLoggingSettingsController(req: Request, res: Response)
   const data = await postLoggingSettings(guildId, req.body.data);
   if (data?.error) return res.status(400).send(data?.error);
   if (!data?.guild || !data) return res.status(404).send({ msg: "Guild not found" });
-
-  res.status(200).send(data);
-}
-
-export async function getChatFilterSettingsController(req: Request, res: Response) {
-  const guildId = req.params.guildId;
-  if (!guildId) return res.status(404).send({ msg: "Guild not found" });
-
-  const data = await getChatFilterSettings(guildId);
-  if (!data) return res.status(404).send({ msg: "Guild not found" });
-
-  await createActionLog(guildId, req.user as User, "chat filter");
 
   res.status(200).send(data);
 }

@@ -1,8 +1,6 @@
 import { Router } from "express";
 import {
   getAdministrationSettingsController,
-  getAltDetectionSettingsController,
-  getChatFilterSettingsController,
   getLevelsSettingsController,
   getLoggingSettingsController,
   getModerationSettingsController,
@@ -39,13 +37,11 @@ router.post('/:guildId/tickets', isAuthenticated, isAllowed, storedGuildSetup, p
 router.get('/:guildId/moderation', isAuthenticated, isAllowed, storedGuildSetup, getModerationSettingsController);
 router.post('/:guildId/moderation', isAuthenticated, isAllowed, storedGuildSetup, postModerationSettingsController);
 
-router.get('/:guildId/alt-detection', isAuthenticated, isAllowed, storedGuildSetup, getAltDetectionSettingsController);
 router.post('/:guildId/alt-detection', isAuthenticated, isAllowed, storedGuildSetup, postAltDetectionSettingsController);
 
 router.get('/:guildId/logging', isAuthenticated, isAllowed, storedGuildSetup, getLoggingSettingsController);
 router.post('/:guildId/logging', isAuthenticated, isAllowed, storedGuildSetup, postLoggingSettingsController);
 
-router.get('/:guildId/chat-filter', isAuthenticated, isAllowed, storedGuildSetup, getChatFilterSettingsController);
 router.post('/:guildId/chat-filter', isAuthenticated, isAllowed, storedGuildSetup, postChatFilterSettingsController);
 
 router.get('/:guildId/verification', isAuthenticated, isAllowed, storedGuildSetup, getVerificationSettingsController);

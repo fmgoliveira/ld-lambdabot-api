@@ -48,6 +48,16 @@ export async function getGuildChannels(guildId: string) {
   return channels.filter((channel: PartialChannel) => [0, 5].includes(channel.type));
 }
 
+export async function getGuildCategories(guildId: string) {
+  const { data: channels } = await axios.get<PartialChannel[]>(`${DISCORD_API_URL}/guilds/${guildId}/channels`, {
+    headers: {
+      Authorization: `Bot ${process.env.DISCORD_BOT_TOKEN}`,
+    },
+  });
+
+  return channels.filter((channel: PartialChannel) => channel.type === 4);
+}
+
 export async function getGuildRoles(guildId: string) {
   const { data: roles } = await axios.get<PartialRole[]>(`${DISCORD_API_URL}/guilds/${guildId}/roles`, {
     headers: {
