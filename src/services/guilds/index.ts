@@ -2,7 +2,7 @@ import axios from 'axios';
 import { Guild } from 'discord.js';
 import { User } from '../../database/schemas';
 import { DISCORD_API_URL } from '../../utils/constants';
-import { PartialChannel, PartialGuild, PartialRole } from '../../utils/types';
+import { PartialChannel, PartialGuild, PartialMember, PartialRole } from '../../utils/types';
 
 export function getBotGuildsService() {
   return axios.get<PartialGuild[]>(`${DISCORD_API_URL}/users/@me/guilds`, {
@@ -66,4 +66,23 @@ export async function getGuildRoles(guildId: string) {
   });
 
   return roles;
+}
+
+export async function getGuildMembers(guildId: string) {
+  let members: PartialMember[] = [];
+  let membersFetch: PartialMember[] = [];
+  let after: string | undefined;
+
+  do {
+    membersFetch = (await axios.get<PartialMember[]>(`${DISCORD_API_URL}/guilds/${guildId}/members?limit=1000${after ? "&after=" + after : ""}`, {
+      headers: {
+        Authorization: `Bot ${process.env.DISCORD_BOT_TOKEN}`,
+      },
+    })).data;
+
+    after = membersFetch[membersFetch.length - 1].user?.id;
+    members.push(...membersFetch);
+  } while (membersFetch.length === 1000);
+
+  return members;
 }

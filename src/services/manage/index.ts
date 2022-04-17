@@ -434,6 +434,7 @@ export async function getModerationSettings(guildId: string | undefined) {
 
   const moderation = {
     settings: guild.modules.moderation,
+    commands: guild.commands.moderation,
   };
   const altDetection = {
     settings: guild.modules.altDetection,

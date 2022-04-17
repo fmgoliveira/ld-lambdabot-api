@@ -411,7 +411,7 @@ const GuildSchema = new Schema<Guild>({
     },
 
     logging: {
-      enabled: { type: Boolean, required: false, default: false },
+      enabled: { type: Boolean, required: false, default: true },
       moderation: {
         enabled: { type: Boolean, required: false, default: false },
         channel: { type: String, required: false, default: '' },
