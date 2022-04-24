@@ -224,13 +224,13 @@ export interface Guild {
 
     levels: {
       enabled: boolean;
-      channel: 'current' | 'dm' | string;
+      channel: 'disabled' | 'current' | 'dm' | string;
       message: string;
       roleRewards: {
         level: number;
         role: string;
       }[];
-      roleRewadsStack: boolean;
+      roleRewardsStack: boolean;
       xpRate: .25 | .5 | .75 | 1 | 1.5 | 2 | 2.5 | 3;
       noXpRoles: string[];
       noXpChannels: string[];
@@ -278,6 +278,9 @@ export interface Guild {
     levels: {
       rank: boolean;
       leaderboard: boolean;
+      giveXp: boolean;
+      removeXp: boolean;
+      setXp: boolean;
     };
   };
 
@@ -511,7 +514,7 @@ const GuildSchema = new Schema<Guild>({
         level: { type: Number, required: false, default: 0 },
         role: { type: String, required: false, default: '' },
       }],
-      roleRewadsStack: { type: Boolean, required: false, default: true },
+      roleRewardsStack: { type: Boolean, required: false, default: true },
       xpRate: { type: Number, required: false, default: 1 },
       noXpRoles: { type: [String], required: false, default: [] },
       noXpChannels: { type: [String], required: false, default: [] },
@@ -559,6 +562,9 @@ const GuildSchema = new Schema<Guild>({
     levels: {
       rank: { type: Boolean, required: false, default: true },
       leaderboard: { type: Boolean, required: false, default: true },
+      giveXp: { type: Boolean, required: false, default: true },
+      removeXp: { type: Boolean, required: false, default: true },
+      setXp: { type: Boolean, required: false, default: true },
     }
   },
 

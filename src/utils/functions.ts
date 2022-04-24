@@ -36,7 +36,7 @@ export const validEmbed = (embed: {
     if (embed.footer.text.length > 2048) return { error: "Footer text is too long. Footer text length must be lower than 2048 characters." };
     if (embed.title.length + embed.author.name.length + embed.footer.text.length + embed.description.length > 6000) return { error: "Embed is too long. Embed length must be lower than 6000 characters." };
 
-    if (!embed.title && !embed.description) return { error: "Title and description cannot be both empty." };
+    if (!embed.description) return { error: "Description cannot be empty." };
 
     if (embed.author.icon_url && !embed.author.name) return { error: "Author name cannot be empty if author icon is set." };
     if (embed.author.url && !embed.author.name) return { error: "Author name cannot be empty if author url is set." };

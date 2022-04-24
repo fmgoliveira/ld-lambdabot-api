@@ -4,15 +4,17 @@ import { Client, Collection, MessageEmbed } from "discord.js";
 
 export default async (client: Client) => {
   process.on('uncaughtException', (err: any) => {
-    console.log(err);
     if (err.message === "Cannot read properties of undefined (reading 'users')") return;
     if (err.message === "Unexpected token '<'") return;
+    if (err.message === "invalid json response body at https://botlist.scarps.club/api/auth/liked/900398063607242762 reason: Unexpected token < in JSON at position 0") return;
+    console.log(err.message);
   });
-
+  
   process.on('unhandledRejection', (err: any) => {
-    console.log(err);
     if (err.message === "Cannot read properties of undefined (reading 'users')") return;
     if (err.message === "Unexpected token '<'") return;
+    if (err.message === "invalid json response body at https://botlist.scarps.club/api/auth/liked/900398063607242762 reason: Unexpected token < in JSON at position 0") return;
+    console.log(err.message);
   });
 
   const getVotedMembers = async () => {

@@ -330,6 +330,9 @@ export async function postTicketsSettings(guildId: string | undefined, data: {
 
       if (category.welcomeMessage.message.length > 4096) return { error: "The welcome message you specified is too long." };
       if (category.welcomeMessage.message.length < 1) return { error: "The welcome message you specified is too short." };
+
+      if (category.label.length > 80) return { error: "The label you specified is too long. It can have a maximum of 80 characters." };
+      if (category.label.length < 1) return { error: "The label you specified is too short." };
     });
 
     const prevData = guild.modules.tickets;
@@ -597,21 +600,29 @@ export async function postLoggingSettings(guildId: string | undefined, data: {
   if (!guild) return null;
 
   if (data.settings.enabled) {
-    const botHasPermissionsInModerationLogChannel = checkForBotPermissionInChannel(data.settings.moderation.channel, "SEND_MESSAGES");
-    if (botHasPermissionsInModerationLogChannel === 0) return { error: "The log channel you specified for moderation logging is not valid." };
-    if (botHasPermissionsInModerationLogChannel === 1) return { error: "The bot does not have permission to send messages in the log channel you specified for moderation logging." };
+    if (data.settings.moderation.enabled && data.settings.moderation.channel) {
+      const botHasPermissionsInModerationLogChannel = checkForBotPermissionInChannel(data.settings.moderation.channel, "SEND_MESSAGES");
+      if (botHasPermissionsInModerationLogChannel === 0) return { error: "The log channel you specified for moderation logging is not valid." };
+      if (botHasPermissionsInModerationLogChannel === 1) return { error: "The bot does not have permission to send messages in the log channel you specified for moderation logging." };
+    };
 
-    const botHasPermissionsInServerEventsLogChannel = checkForBotPermissionInChannel(data.settings.serverEvents.channel, "SEND_MESSAGES");
-    if (botHasPermissionsInServerEventsLogChannel === 0) return { error: "The log channel you specified for server events logging is not valid." };
-    if (botHasPermissionsInServerEventsLogChannel === 1) return { error: "The bot does not have permission to send messages in the log channel you specified for server events logging." };
+    if (data.settings.serverEvents.enabled && data.settings.serverEvents.channel) {
+      const botHasPermissionsInServerEventsLogChannel = checkForBotPermissionInChannel(data.settings.serverEvents.channel, "SEND_MESSAGES");
+      if (botHasPermissionsInServerEventsLogChannel === 0) return { error: "The log channel you specified for server events logging is not valid." };
+      if (botHasPermissionsInServerEventsLogChannel === 1) return { error: "The bot does not have permission to send messages in the log channel you specified for server events logging." };
+    };
 
-    const botHasPermissionsInMemberEventsLogChannel = checkForBotPermissionInChannel(data.settings.memberEvents.channel, "SEND_MESSAGES");
-    if (botHasPermissionsInMemberEventsLogChannel === 0) return { error: "The log channel you specified for member events logging is not valid." };
-    if (botHasPermissionsInMemberEventsLogChannel === 1) return { error: "The bot does not have permission to send messages in the log channel you specified for member events logging." };
+    if (data.settings.memberEvents.enabled && data.settings.memberEvents.channel) {
+      const botHasPermissionsInMemberEventsLogChannel = checkForBotPermissionInChannel(data.settings.memberEvents.channel, "SEND_MESSAGES");
+      if (botHasPermissionsInMemberEventsLogChannel === 0) return { error: "The log channel you specified for member events logging is not valid." };
+      if (botHasPermissionsInMemberEventsLogChannel === 1) return { error: "The bot does not have permission to send messages in the log channel you specified for member events logging." };
+    };
 
-    const botHasPermissionsInMessageEventsLogChannel = checkForBotPermissionInChannel(data.settings.messageEvents.channel, "SEND_MESSAGES");
-    if (botHasPermissionsInMessageEventsLogChannel === 0) return { error: "The log channel you specified for message events logging is not valid." };
-    if (botHasPermissionsInMessageEventsLogChannel === 1) return { error: "The bot does not have permission to send messages in the log channel you specified for message events logging." };
+    if (data.settings.messageEvents.enabled && data.settings.messageEvents.channel) {
+      const botHasPermissionsInMessageEventsLogChannel = checkForBotPermissionInChannel(data.settings.messageEvents.channel, "SEND_MESSAGES");
+      if (botHasPermissionsInMessageEventsLogChannel === 0) return { error: "The log channel you specified for message events logging is not valid." };
+      if (botHasPermissionsInMessageEventsLogChannel === 1) return { error: "The bot does not have permission to send messages in the log channel you specified for message events logging." };
+    };
   };
 
   guild.modules.logging = data.settings;
@@ -634,6 +645,7 @@ export async function getVerificationSettings(guildId: string | undefined) {
 
 export async function postVerificationSettings(guildId: string | undefined, data: {
   settings: {
+    sendPanel?: boolean;
     enabled: boolean;
     channel: string;
     message: string;
@@ -666,31 +678,30 @@ export async function postVerificationSettings(guildId: string | undefined, data
   const guild = await Guild.findOne({ guildId });
   if (!guild) return null;
 
-  const embed = validEmbed(data.settings.embed);
-  if (embed.error) return { error: embed.error };
-  if (data.settings.enabled && !data.settings.channel) return { error: "You must specify a channel." };
-  if (!data.settings.message && !data.settings.embed.enabled) return { error: "You must specify a message or an embed." };
-
   if (data.settings.enabled) {
+    const embed = validEmbed(data.settings.embed);
+    if (embed.error) return { error: embed.error };
+    if (data.settings.enabled && !data.settings.channel) return { error: "You must specify a channel." };
+    if (!data.settings.message && !data.settings.embed.enabled) return { error: "You must specify a message or an embed." };
+    if (data.settings.enabled && !data.settings.buttonLabel) return { error: "You must specify a button label." };
+    if (data.settings.enabled && data.settings.buttonLabel.length > 80) return { error: "The button label must be 80 characters or less." };
+
     const botHasPermissions: 0 | 1 | 2 = checkForBotPermissionInChannel(data.settings.channel, "SEND_MESSAGES");
     if (botHasPermissions === 0) return { error: "The channel you specified is not valid." };
     if (botHasPermissions === 1) return { error: "The bot does not have permission to send messages in the channel you specified." };
 
-    const prevData = guild.modules.verification;
-    if (!prevData.embed.enabled && !data.settings.embed.enabled) {
-      if (prevData.message !== data.settings.message) {
+    if (data.settings.sendPanel) {
+      if (!data.settings.embed.enabled) {
         const channel = client.channels.cache.get(data.settings.channel);
         if (channel && (channel.type === 'GUILD_NEWS' || channel.type === 'GUILD_TEXT')) channel.send({
           content: data.settings.message,
           components: [
             new MessageActionRow().addComponents(
-              new MessageButton().setLabel(data.settings.buttonLabel).setStyle('SUCCESS').setCustomId('verification-verify').setEmoji('<:check:942750762256175145>'),
+              new MessageButton().setLabel(data.settings.buttonLabel).setStyle('SUCCESS').setCustomId('verification-verify').setEmoji('<:check_white:962029281494589520>'),
             ),
           ],
         }).catch((err) => { return { error: 'Could not send the verification panel message. Make sure the bot has permissions and try again.' } });
-      }
-    } else if (prevData.embed.enabled && !data.settings.embed.enabled) {
-      if (prevData.embed === data.settings.embed) {
+      } else {
         const channel = client.channels.cache.get(data.settings.channel);
         if (channel && (channel.type === 'GUILD_NEWS' || channel.type === 'GUILD_TEXT')) channel.send({
           embeds: [
@@ -718,55 +729,15 @@ export async function postVerificationSettings(guildId: string | undefined, data
           ],
           components: [
             new MessageActionRow().addComponents(
-              new MessageButton().setLabel(data.settings.buttonLabel).setStyle('SUCCESS').setCustomId('verification-verify').setEmoji('<:check:942750762256175145>'),
+              new MessageButton().setLabel(data.settings.buttonLabel).setStyle('SUCCESS').setCustomId('verification-verify').setEmoji('<:check_white:962029281494589520>'),
             ),
           ],
         }).catch((err) => { return { error: 'Could not send the verification panel message. Make sure the bot has permissions and try again.' } });
-      }
-    } else if (!prevData.embed.enabled && data.settings.embed.enabled) {
-      const channel = client.channels.cache.get(data.settings.channel);
-      if (channel && (channel.type === 'GUILD_NEWS' || channel.type === 'GUILD_TEXT')) channel.send({
-        embeds: [
-          {
-            title: data.settings.embed.title,
-            description: data.settings.embed.description,
-            color: parseInt(data.settings.embed.color.replace('#', ''), 16),
-            thumbnail: {
-              url: data.settings.embed.thumbnail,
-            },
-            url: data.settings.embed.titleUrl,
-            author: {
-              name: data.settings.embed.author.name,
-              icon_url: data.settings.embed.author.icon_url,
-              url: data.settings.embed.author.url,
-            },
-            image: {
-              url: data.settings.embed.image,
-            },
-            footer: {
-              text: data.settings.embed.footer.text,
-              icon_url: data.settings.embed.footer.icon_url,
-            },
-          },
-        ],
-        components: [
-          new MessageActionRow().addComponents(
-            new MessageButton().setLabel(data.settings.buttonLabel).setStyle('SUCCESS').setCustomId('verification-verify').setEmoji('<:check:942750762256175145>'),
-          ),
-        ],
-      }).catch((err) => { return { error: 'Could not send the verification panel message. Make sure the bot has permissions and try again.' } });
-    } else if (prevData.embed.enabled && !data.settings.embed.enabled) {
-      const channel = client.channels.cache.get(data.settings.channel);
-      if (channel && (channel.type === 'GUILD_NEWS' || channel.type === 'GUILD_TEXT')) channel.send({
-        content: data.settings.message,
-        components: [
-          new MessageActionRow().addComponents(
-            new MessageButton().setLabel(data.settings.buttonLabel).setStyle('SUCCESS').setCustomId('verification-verify').setEmoji('<:check:942750762256175145>'),
-          ),
-        ],
-      }).catch((err) => { return { error: 'Could not send the verification panel message. Make sure the bot has permissions and try again.' } });
-    }
+      };
+    };
   };
+
+  data.settings.sendPanel = undefined;
 
   guild.modules.verification = data.settings;
   guild.commands.verification = data.commands;
@@ -790,13 +761,13 @@ export async function getLevelsSettings(guildId: string | undefined) {
 export async function postLevelsSettings(guildId: string | undefined, data: {
   settings: {
     enabled: boolean;
-    channel: 'current' | 'dm' | string;
+    channel: 'disabled' | 'current' | 'dm' | string;
     message: string;
     roleRewards: {
       level: number;
       role: string;
     }[];
-    roleRewadsStack: boolean;
+    roleRewardsStack: boolean;
     xpRate: .25 | .5 | .75 | 1 | 1.5 | 2 | 2.5 | 3;
     noXpRoles: string[];
     noXpChannels: string[];
@@ -804,15 +775,20 @@ export async function postLevelsSettings(guildId: string | undefined, data: {
   commands: {
     rank: boolean;
     leaderboard: boolean;
+    giveXp: boolean;
+    removeXp: boolean;
+    setXp: boolean;
   };
 }) {
   const guild = await Guild.findOne({ guildId });
   if (!guild) return null;
 
-  if (!data.settings.message) return { error: "You must specify a message to send on level up." };
-  if (data.settings.message.length > 2000) return { error: "The message you specified is too long." };
+  if (data.settings.enabled) {
+    if (!data.settings.message) return { error: "You must specify a message to send on level up." };
+    if (data.settings.message.length > 2000) return { error: "The message you specified is too long." };
+  };
 
-  if (data.settings.enabled && !['current', 'dm'].includes(data.settings.channel)) {
+  if (data.settings.enabled && !['disabled', 'current', 'dm'].includes(data.settings.channel)) {
     const botHasPermissions: 0 | 1 | 2 = checkForBotPermissionInChannel(data.settings.channel, "SEND_MESSAGES");
     if (botHasPermissions === 0) return { error: "The channel you specified is not valid." };
     if (botHasPermissions === 1) return { error: "The bot does not have permission to send messages in the channel you specified." };
