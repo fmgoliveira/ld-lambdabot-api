@@ -2,7 +2,7 @@ if (process.env.ENV !== 'production') {
   require("dotenv").config();
 };
 import express, { Express } from 'express';
-import cors from 'cors';
+// import cors from 'cors';
 import session from 'express-session';
 import passport from 'passport';
 import routes from '../routes';
@@ -18,10 +18,10 @@ export function createApp(): Express {
   app.use(express.urlencoded());
 
   // Enable CORS
-  app.use(cors({
-    origin: [`${process.env.DASHBOARD_DOMAIN!}`, '89.115.78.248'],
-    credentials: true,
-  }));
+  // app.use(cors({
+  //   origin: [`${process.env.DASHBOARD_DOMAIN!}`, '89.115.78.248', 'https://bot.lambdadev.xyz', 'https://bot-beta.lambdadev.xyz', 'localhost:3000'],
+  //   credentials: true,
+  // }));
 
   // Enable Sessions
   app.use(session({
